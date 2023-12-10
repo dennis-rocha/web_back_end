@@ -36,7 +36,7 @@ class Sensors(Base):
     name = Column(String)
     data = Column(Integer)
     # timestamp = Column(Integer) #FIXME 
-    is_actve = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=True)
 
     # relação estrangeira com a tabela machine
     machine_id = Column(Integer, ForeignKey('machine.id'))
@@ -60,7 +60,7 @@ class Machines(Base):
     __tablename__ = "machine"
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    is_actve = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=True)
 
     #Cria relação com a tabela sensor
     sensors = relationship("Sensors", back_populates="machine")
