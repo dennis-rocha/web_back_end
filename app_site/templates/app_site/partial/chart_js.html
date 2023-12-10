@@ -1,0 +1,81 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const { useState, useEffect } = React;
+    
+    {% for machine in machines %}
+        const {{machine}}Component = () => {
+            {% for sensor in machine.sensors %}
+            
+            const [valueApi{{sensor.name}}, setValueApi{{sensor.name}}] = useState('');
+
+
+            useEffect(() => {
+            const getValueApi{{sensor.name}} = async () => {
+                try {
+                const response = await fetch({% url "values" sensor.name %});
+                const data = await response.json();
+                setValueApi{{sensor.name}}(data.{{sensor.name}});
+                } catch (err) {
+                console.error('Erro ao obter valor do banco:', err);
+                }
+            };
+
+            getValueApi{{sensor.name}}();
+
+            const intervalo = setInterval(() => {
+                getValueApi{{sensor.name}}();
+            }, 3000);
+
+            return () => clearInterval(intervalo);
+            }, []);
+            {% endfor %}
+
+            return null;
+        };
+
+        ReactDOM.render(
+            React.createElement({{machine}}Component),
+            document.getElementById('root')
+        );
+    
+    
+    {% endfor %}
+
+    
+    {% for machine in machines %}
+    const machine.name = document.getElementById('chart-machine.name');
+
+    new Chart(machine.name, {
+            type: 'line',
+            data: {
+                labels: [
+                    {% for i in labels %}"{{i}}",
+                    {% endfor %}
+                ],
+                datasets: [
+                {% for sensor in machine.sensors %}
+                    {
+                        data: valueApi{{sensor.name}},
+                        lineTension: 0,
+                        backgroundColor: 'transparent',
+                        borderColor: '{{sensor.color}}',
+                        borderWidth: 4,
+                        pointBackgroundColor: '{{sensor.color}}'
+                    },
+                {% endfor %}
+                ]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        boxPadding: 3
+                    }
+                }
+            }
+        });
+        
+    {% endfor %}
+</script>
