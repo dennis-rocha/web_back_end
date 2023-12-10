@@ -7,49 +7,27 @@ import data as db
 
 app = Flask(__name__)
 
-
-#Obtem informações de todos os sensores
-sensors = {}
-for row in db.session.query(db.Sensors).all():
-    field = {
-        'name': row.name,
-        'data': row.data,
-        'timestamp': int(time() * 1000)
-    }
-    sensors[row.name] = field
-
-    
-# sensors = {
-#     'sensor1': {
-#         'name': 'sensor1',
-#         'data': 40,
-#         'timestamp': int(time() * 1000)
-#     },
-#     'sensor2': {
-#         'name': 'sensor2',
-#         'data': 60,
-#         'timestamp': int(time() * 1000)
-#     },
-#     'sensor3': {
-#         'name': 'sensor3',
-#         'data': 30,
-#         'timestamp': int(time() * 1000)
-#     },
-# }
-
+def check_sensor(sensor:db.Sensors):
+    machine = db.session.query(db.Machines).filter(db.Machines.id == sensor.machine_id).first()
+    return sensor.is_active and machine.is_active
 
 @app.route('/api/v1/sensors', methods=['GET'])
 def get_sensor_data():
     name = request.args.get('name')
     r = random.randint(-2, 2)
-
+   
     sensor = db.session.query(db.Sensors).filter(db.Sensors.name == name).first()
     
     #Verifica se contém o sensor salvo
     if not sensor:
         return {
-            "message": f"Não foi encontrado o sensor com esse nome: {sensor}"
+            "menssagem": f"Não foi encontrado o sensor com esse nome: {sensor}"
         },404
+ 
+    if not check_sensor(sensor):
+        return {
+            "menssagem": f"Sensor desativado"
+        }
 
     return {
         'name': sensor.name,
@@ -76,6 +54,50 @@ def set_points_sensor():
     db.session.commit()
     return jsonify(success=True)
 
+@app.post('/api/v1/machine')
+def creat_machine():
+    data:dict = request.json
+
+    machine_name = data.get("name")
+    machine_active = data.get("is_active")
+
+    if machine_name and machine_active:
+        import pdb;pdb.set_trace()
+        machine = db.Machines(name=machine_name,is_active=machine_active)
+        db.session.add(machine)
+        db.session.commit()
+
+        return {
+            "menssagem" : f"{machine_name} criado"
+        },201
+
+    return {
+        "menssagem": "Necessário enviar os campos 'name' e 'is_active'"
+    },400
+
+
+@app.post('/api/v1/machine/<name>')
+def creat_sensor(name):
+    machine = db.session.query(db.Machines).filter(db.Machines.name == name).first()
+    if not machine:
+        return {
+            "message": f"Não foi encontrado maquina com esse nome: {name}"
+        },404
+
+    data:dict = request.json
+
+    sensor_name = data.get("name")
+    sensor_data = data.get("data")
+    sensor_active = data.get("is_active",True)
+
+    if sensor_name and sensor_data:
+        sensor = db.Sensors(name=sensor_name, data=sensor_data, is_active=sensor_active, machine=machine)
+        db.session.add(sensor)
+        db.session.commit()
+
+        return {
+            "menssagem" : f"{sensor_name} criado"
+        },201
 
 
 if __name__ == '__main__':
