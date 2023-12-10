@@ -15,7 +15,7 @@ from sqlalchemy.orm import relationship
 
 # db.session.commit()
 
-# result = db.session.query(db.Sensors, db.Machines).join(db.Machines, db.Sensors.machine_id == db.Machines.id).filter(db.Machines.is_actve == True, db.Sensors.is_actve == True).all()
+# result = db.session.query(db.Sensors, db.Machines).join(db.Machines, db.Sensors.machine_id == db.Machines.id).filter(db.Machines.is_active == True, db.Sensors.is_active == True).all()
 
 # print(result)
 

@@ -1,0 +1,21 @@
+<div class="container">
+    <div class="row">
+        {% for machine in machines %}
+            <div class="bg-white container mt-3 rounded col-md-6">
+                <div>
+                    <h4 class="text-dark pt-2">{{machine.name}}</h3>
+                    <hr>
+                </div>
+                <div>
+                    <canvas id="chart-{{machine.name}}"></canvas>
+                </div>
+                <br>
+                <div class="mb-3">
+                    {% for sensor in machine.sensors %}
+                        <span class="badge rounded-pill" style="background-color: {{sensor.color}};"> {{sensor.name}} </span>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
