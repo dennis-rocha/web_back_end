@@ -1,81 +1,77 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const { useState, useEffect } = React;
-    
+
     {% for machine in machines %}
-        const {{machine}}Component = () => {
-            {% for sensor in machine.sensors %}
-            
-            const [valueApi{{sensor.name}}, setValueApi{{sensor.name}}] = useState('');
 
-
-            useEffect(() => {
-            const getValueApi{{sensor.name}} = async () => {
-                try {
-                const response = await fetch({% url "values" sensor.name %});
-                const data = await response.json();
-                setValueApi{{sensor.name}}(data.{{sensor.name}});
-                } catch (err) {
-                console.error('Erro ao obter valor do banco:', err);
-                }
-            };
-
-            getValueApi{{sensor.name}}();
-
-            const intervalo = setInterval(() => {
-                getValueApi{{sensor.name}}();
-            }, 3000);
-
-            return () => clearInterval(intervalo);
-            }, []);
-            {% endfor %}
-
-            return null;
-        };
-
-        ReactDOM.render(
-            React.createElement({{machine}}Component),
-            document.getElementById('root')
-        );
+    // Abaixo gráfico da maquina: 
+    const id_chart_{{machine.name}} = document.getElementById('chart-{{machine.name}}');
+    const chart_{{machine.name}} = {
+      labels: [
+        {% for i in labels %}"{{i}}",
+        {% endfor %}
+      ],
+      datasets: [
+      {% for sensor in machine.sensors %}
+      {
+          data: [40,100,50], // dados iniciais
+          lineTension: 0,
+          backgroundColor: 'transparent',
+          borderColor: '{{sensor.color}}',
+          borderWidth: 1,
+          pointBackgroundColor: '{{sensor.color}}',
+        },
+        {% endfor %}
+      ]
+    };
+  
+    // Cria o gráfico
+    const myChart_{{machine.name}} = new Chart(id_chart_{{machine.name}}, {
+      type: 'line',
+      data: chart_{{machine.name}},
+      options: {
+        animation: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            boxPadding: 3
+          }
+        }
+      }
+    });
     
-    
-    {% endfor %}
-
-    
-    {% for machine in machines %}
-    const machine.name = document.getElementById('chart-machine.name');
-
-    new Chart(machine.name, {
-            type: 'line',
-            data: {
-                labels: [
-                    {% for i in labels %}"{{i}}",
-                    {% endfor %}
-                ],
-                datasets: [
-                {% for sensor in machine.sensors %}
-                    {
-                        data: valueApi{{sensor.name}},
-                        lineTension: 0,
-                        backgroundColor: 'transparent',
-                        borderColor: '{{sensor.color}}',
-                        borderWidth: 4,
-                        pointBackgroundColor: '{{sensor.color}}'
-                    },
-                {% endfor %}
-                ]
-            },
-            options: {
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        boxPadding: 3
-                    }
-                }
+    // Busca os dados na API
+    function fetchData_{{machine.name}}() {
+        {% for sensor in machine.sensors %}
+        fetch('/sensors/{{sensor.name}}/')
+        .then(response => response.json())
+        .then(apiData => {
+            const sensorData_{{sensor.name}} = apiData.{{sensor.name}};
+            const timeData = apiData.timestamp;
+            chart_{{machine.name}}.datasets[{{sensor.index}}].data = sensorData_{{sensor.name}};
+            if ({{sensor.index}} === 0) {
+                chart_{{machine.name}}.labels = timeData;
             }
+        })
+        .catch(error => {
+            console.error('Erro ao buscar dados da API: {{sensor.name}}', error);
         });
         
-    {% endfor %}
+        {% endfor %}
+        myChart_{{machine.name}}.update();
+    }
+    
+    // Atualizar dados a cada 1,5 segundos
+    const intervalId_{{machine.name}} = setInterval(fetchData_{{machine.name}}, 1500);
+    
+      // Limpar intervalo quando a página for fechada ou o componente destruído
+      window.addEventListener('beforeunload', () => {
+        clearInterval(intervalId_{{machine.name}});
+      });
+
+
+      {% endfor %}
+
+
 </script>

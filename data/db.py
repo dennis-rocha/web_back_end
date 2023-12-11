@@ -15,7 +15,7 @@ class Base(DeclarativeBase):
     pass
 
 #Conexão com banco SQLITE para simplificar a aplicação
-conn = "sqlite:///mydatabase.db"
+conn = "sqlite:///my_database.db"
 engine = create_engine(conn)
 
 class Sensors(Base):

@@ -2,7 +2,7 @@ import data as db
 from sqlalchemy.orm import relationship
 
 # Inciando com as tabelas padrão
-# machine = db.Machines(name="primeira maquina")
+# machine = db.Machines(name="primeira_maquina")
 # db.session.add(machine)
 
 # sensor1 = db.Sensors(name="sensor1", data=40, machine=machine)

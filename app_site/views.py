@@ -1,5 +1,6 @@
 import pandas as pd
 import random
+from time import time
 
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -53,17 +54,18 @@ def home(request):
     for key in raw_data.keys():
         s = [{
                 'name': raw_data[key]['sensor_name'][i],
-                'color':raw_data[key]['color'][i]
+                'color':raw_data[key]['color'][i],
+                'index' : i
             }for i in range(len(raw_data[key]['sensor_name']))]
         data.append({
         'name':key,
-        'sensores':s})
+        'sensors':s})
 
     #from ipdb import set_trace; set_trace()
 
     return_data = {
         "machines" : data,
-        "labels": range(1,201)
+        "labels": range(1,51)
     }
 
     print(return_data)
@@ -123,6 +125,12 @@ class ValuesSensor(View):
     def get(self, request, *args, **kwargs):
         sensor_name = kwargs.get('sensor_name')
         sensor = db.session.query(db.Sensors).filter(db.Sensors.name == sensor_name).first()
-        results = db.session.query(db.RawDatas).filter(db.RawDatas.sensor_id == sensor.id).order_by(db.RawDatas.id.desc()).limit(200).all()
-        data = [i.data for i in results]
-        return JsonResponse({sensor_name:data})
+        results = db.session.query(db.RawDatas).filter(db.RawDatas.sensor_id == sensor.id).order_by(db.RawDatas.id.desc()).limit(50).all()
+
+        setpoint = []
+        data = []
+        now = int(time() * 1000)
+        for i in results: 
+            setpoint.append(i.data)
+            data.append((now - i.timestamp) / 1000)
+        return JsonResponse({sensor_name:setpoint,"timestamp":data})
