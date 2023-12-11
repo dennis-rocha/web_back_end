@@ -1,6 +1,8 @@
 import data as db
 from sqlalchemy.orm import relationship
 
+
+
 # Inciando com as tabelas padrão
 
 machine = db.Machines(name="primeira_maquina")
